@@ -1,0 +1,28 @@
+---
+title: 'Lab #: Template'
+author: "Lillie Allen, Nick Bukovec, Nikhil Koganti, Madeline Willett"
+date: "1/1/1970"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, 
+  message = FALSE, 
+  warning = FALSE, 
+  fig.align = "center"
+  )
+# Center all plot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+```
+
+```{r libs}
+library(tidyverse)
+library(prettydoc)
+library(here)
+
+
+```
