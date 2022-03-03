@@ -1,12 +1,18 @@
 ---
-title: 'Lab #: Template'
+title: 'Stat 331 - Final'
 author: "Lillie Allen, Nick Bukovec, Nikhil Koganti, Madeline Willett"
-date: "1/1/1970"
+date: "3/2/2022"
 output:
   prettydoc::html_pretty:
     theme: hpstr
     highlight: github
 ---
+
+```{r libs}
+library(tidyverse)
+library(prettydoc)
+library(here)
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -19,10 +25,44 @@ knitr::opts_chunk$set(
 theme_update(plot.title = element_text(hjust = 0.5))
 ```
 
-```{r libs}
-library(tidyverse)
-library(prettydoc)
-library(here)
+# Load Data
+```{r load}
+oil <- read_csv(here::here("oil_consumption_per_cap.csv"))
+sdi <- read_csv(here::here("sdi.csv"))
+```
 
+# Clean Data
 
+```{r clean}
+oil_clean <- oil %>%
+  # Coerce types
+  transmute(
+    country = as.factor(country),
+    across(`1965`:`2019`, as.numeric)
+    ) %>% 
+  # Pivot 
+  pivot_longer(
+    cols = `1965`:`2019`, 
+    names_to = "year",
+    values_to = "Oil Consumption per Person (tonnes/person)",
+    )
+
+sdi_clean <- sdi %>% 
+  # Coerce types
+  transmute(
+    country = as.factor(country),
+    across(`1990`:`2019`, as.numeric)
+    ) %>% 
+  # Pivot
+  pivot_longer(
+    cols = `1990`:`2019`, 
+    names_to = "year",
+    values_to = "Sustainable Development Index",
+    ) 
+
+dataset <- sdi_clean %>% 
+  # Join data by year and country
+  left_join(oil_clean, by = c("year", "country")) %>% 
+  # Drop any missing data
+  drop_na()
 ```
