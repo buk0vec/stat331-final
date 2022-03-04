@@ -8,12 +8,6 @@ output:
     highlight: github
 ---
 
-```{r libs}
-library(tidyverse)
-library(prettydoc)
-library(here)
-```
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE, 
@@ -21,6 +15,16 @@ knitr::opts_chunk$set(
   warning = FALSE, 
   fig.align = "center"
   )
+
+```
+
+```{r libs}
+library(tidyverse)
+library(prettydoc)
+library(here)
+```
+
+```{r formatting, include = FALSE}
 # Center all plot titles
 theme_update(plot.title = element_text(hjust = 0.5))
 ```
@@ -62,7 +66,23 @@ sdi_clean <- sdi %>%
 
 dataset <- sdi_clean %>% 
   # Join data by year and country
-  left_join(oil_clean, by = c("year", "country")) %>% 
+  inner_join(oil_clean, by = c("year", "country")) %>% 
   # Drop any missing data
   drop_na()
+```
+
+# Data Visualization
+
+```{r}
+dataset %>%
+  ggplot(mapping = aes(
+    x = `Oil Consumption per Person (tonnes/person)`, 
+    y = `Sustainable Development Index`)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+  labs(
+    title = "Relationship Between Oil Consumption per Person and SDI",
+    x = "Oil Consumption per Person (tonnes/person)",
+    y = "Sustainable Development Index"
+  )
 ```
