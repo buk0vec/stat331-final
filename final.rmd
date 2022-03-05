@@ -102,5 +102,6 @@ dataset %>%
     title = "Mean Ratio of SDI to Oil Consumption Per Person Over Time",
     x = "Year",
     y = "Mean Ratio"
-  )
+  ) +
+  theme(axis.text.x = element_text(size = 7))
 ```
