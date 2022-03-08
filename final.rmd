@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 library(tidyverse)
 library(prettydoc)
 library(here)
+library(broom)
 ```
 
 ```{r formatting, include = FALSE}
@@ -85,7 +86,7 @@ dataset %>%
     x = "Oil Consumption per Person (tonnes/person)",
     y = "Sustainable Development Index"
   )
- ```
+```
  
 # Visualization Over Time
 
@@ -104,4 +105,26 @@ dataset %>%
     y = "Mean Ratio"
   ) +
   theme(axis.text.x = element_text(size = 7))
+```
+
+# Linear Regression
+
+```{r}
+dataset_lm <- dataset %>%
+  lm(`Sustainable Development Index` ~ `Oil Consumption per Person (tonnes/person)`, data = .)
+```
+
+```{r}
+broom::glance(dataset_lm) 
+```
+SDI = 67.32 -7.714(Oil Consumption)
+The intercept, b0 = 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, b1 = -7.714,
+summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
+
+# Residuals
+```{r}
+dataset_lm %>% 
+  augment() %>% 
+  ggplot(mapping = aes(y = .resid, x = .fitted)) +
+  geom_point()
 ```
