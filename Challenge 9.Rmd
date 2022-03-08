@@ -1,0 +1,152 @@
+---
+title: 'Challenge 9'
+author: "Madeline Willett"
+date: "3/4/2022"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, 
+  message = FALSE, 
+  warning = FALSE, 
+  fig.align = "center"
+  )
+```
+
+```{r libs}
+library(tidyverse)
+library(prettydoc)
+library(here)
+```
+
+```{r formatting, include = FALSE}
+# Center all plot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+```
+
+# Load Data
+
+```{r load}
+oil <- read_csv(here::here("Week 9", "oil_consumption_per_cap_new.csv"))
+sdi <- read_csv(here::here("Week 9", "sdi_new.csv"))
+```
+
+# Clean Data
+
+```{r clean}
+oil_clean <- oil %>%
+  # Coerce types
+  transmute(
+    country = as.factor(country),
+    across(`1965`:`2019`, as.numeric)
+    ) %>% 
+  # Pivot 
+  pivot_longer(
+    cols = `1965`:`2019`, 
+    names_to = "year",
+    values_to = "Oil Consumption per Person (tonnes/person)",
+    )
+sdi_clean <- sdi %>% 
+  # Coerce types
+  transmute(
+    country = as.factor(country),
+    across(`1990`:`2019`, as.numeric)
+    ) %>% 
+  # Pivot
+  pivot_longer(
+    cols = `1990`:`2019`, 
+    names_to = "year",
+    values_to = "Sustainable Development Index",
+    ) 
+dataset <- sdi_clean %>% 
+  # Join data by year and country
+  inner_join(oil_clean, by = c("year", "country")) %>% 
+  # Drop any missing data
+  drop_na()
+```
+
+# Data Visualization
+
+## 1
+
+```{r}
+windowsFonts(A = windowsFont("Georgia"),
+             B = windowsFont("New Times Roman")) 
+dataset %>%
+  ggplot(mapping = aes(
+    x = `Oil Consumption per Person (tonnes/person)`, 
+    y = `Sustainable Development Index`)) +
+    geom_point() +
+    geom_smooth(method = "lm", 
+                color = "red") +
+  labs(
+    title = "Relationship Between Oil Consumption per Person and SDI",
+    subtitle = "Visualizing how oil consumption per person affects the Sustainable Development Index",
+    caption = "Data from Gapminder",
+    x = "Oil Consumption per Person (tonnes/person)",
+    y = "Sustainable Development Index"
+    ) +
+  theme_bw() +
+  theme(text = element_text(family = "A"),
+        plot.title = element_text(size = 12, 
+                                  face = "bold"),
+        plot.subtitle = element_text(size = 10, 
+                                     color = "dark grey"),
+        plot.caption = element_text(hjust = 1, 
+                                    color = "blue", 
+                                    face = "italic"),
+        panel.grid = element_line(),
+        panel.border = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  ylim(0, 90)
+
+# I used the link below to figure out to make the background white 
+# and remove the border around the plot.
+# https://www.datanovia.com/en/blog/ggplot-theme-background-color-and-grids/
+# I used the link below to determine how to get rid of minor grid lines.
+# https://statisticsglobe.com/modify-major-and-minor-grid-lines-of-ggplot2-plot-in-r
+# I used the link below to figure out how to change the font on my plot.
+# https://statisticsglobe.com/change-font-of-plot-in-r
+# I used the link below to make the y-axis start at 0 rather than display 
+# negative values (which our data doesn't go below x-axis).
+# http://www.sthda.com/english/wiki/ggplot2-axis-scales-and-transformations
+# I used the link below to add  subtitles and captions (and make them look cool).
+# https://www.datanovia.com/en/blog/ggplot-title-subtitle-and-caption/#:~:text=For%20example%2C%20to%20set%20a,%E2%80%9Cbold%E2%80%9D%20and%20%E2%80%9Cbold.
+```
+
+## 2
+
+```{r}
+dataset %>%
+  group_by(year) %>%
+  mutate(ratio = 
+           (`Sustainable Development Index`/`Oil Consumption per Person (tonnes/person)`)) %>%
+  summarize(mean = mean(ratio)) %>%
+  ggplot(mapping = aes(
+    group = 1,
+    x = `year`, 
+    y = mean)) +
+  geom_point() + 
+  labs(
+    title = "Mean Ratio of SDI to Oil Consumption Per Person Over Time",
+    x = "Year",
+    y = "Mean Ratio"
+  ) +
+  theme_bw() +
+  theme(text = element_text(family = "B"),
+        axis.text.x = element_text(size = 7),
+        plot.title = element_text(size = 12, 
+                                  face = "bold", 
+                                  hjust = 0.5),
+        panel.grid = element_line(),
+        panel.border = element_blank(),
+        plot.background = element_rect(fill = "#BFD5E3"))
+
+# I used the link below to change the background color of the plot.
+# https://www.datanovia.com/en/blog/ggplot-theme-background-color-and-grids/
+```
