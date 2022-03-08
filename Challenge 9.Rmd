@@ -128,6 +128,7 @@ dataset %>%
            (`Sustainable Development Index`/`Oil Consumption per Person (tonnes/person)`)) %>%
   summarize(mean = mean(ratio)) %>%
   ggplot(mapping = aes(
+    group = 1,
     x = `year`, 
     y = mean)) +
   geom_point() + 
