@@ -75,17 +75,46 @@ dataset <- sdi_clean %>%
 # Data Visualization
 
 ```{r}
+# See Source 1
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#CC79A7", "#0072B2",
+               "#D55E00")
 dataset %>%
   ggplot(mapping = aes(
     x = `Oil Consumption per Person (tonnes/person)`, 
-    y = `Sustainable Development Index`)) +
-    geom_point() +
-    geom_smooth(method = "lm") +
+    y = `Sustainable Development Index`,
+    size = `Oil Consumption per Person (tonnes/person)`
+  )) +
+  geom_jitter(
+    color = "black",
+    alpha = 0.70,
+    # size = 0.65
+  ) +
+  # See Source 2
   labs(
-    title = "Relationship Between Oil Consumption per Person and SDI",
+    title = "**Visualizing Oil Consumption and Sustainable Development** 
+    <br />
+    <span style='font-size:11pt'>As countries consume more oil, the benefits
+    to the lives of their citizens are outweighed <br /> by their carbon 
+    footprints
+    </span>",
     x = "Oil Consumption per Person (tonnes/person)",
-    y = "Sustainable Development Index"
-  )
+    y = "Sustainable Development Index",
+    caption = "Data from Gapminder",
+  ) +
+  scale_y_continuous(limits = c(0, 110)) +
+  scale_x_sqrt() +
+  # scale_color_manual(values = cbPalette, name = "") +
+  scale_size_continuous(range = c(0.4, 2), name = "") +
+  # See Source 3
+  theme(
+    text = element_text(family = "Helvetica"),
+    plot.title = element_markdown(lineheight = 1.1),
+    plot.caption = element_text(hjust = 1, 
+                                color = "blue", 
+                                face = "italic"),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    legend.position = "none")
 ```
  
 # Visualization Over Time
