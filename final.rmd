@@ -11,8 +11,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE, 
-  message = FALSE, 
-  warning = FALSE, 
+  message = TRUE, 
+  warning = TRUE, 
   fig.align = "center"
   )
 
@@ -23,11 +23,7 @@ library(tidyverse)
 library(prettydoc)
 library(here)
 library(broom)
-```
-
-```{r formatting, include = FALSE}
-# Center all plot titles
-theme_update(plot.title = element_text(hjust = 0.5))
+library(ggtext)
 ```
 
 # Load Data
@@ -75,17 +71,64 @@ dataset <- sdi_clean %>%
 # Data Visualization
 
 ```{r}
+# See Source 1
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#CC79A7", "#0072B2",
+               "#D55E00")
+
 dataset %>%
   ggplot(mapping = aes(
     x = `Oil Consumption per Person (tonnes/person)`, 
-    y = `Sustainable Development Index`)) +
-    geom_point() +
-    geom_smooth(method = "lm") +
+    y = `Sustainable Development Index`,
+    color = case_when(
+      country == "Singapore" ~ "Singapore",
+      country == "Bangladesh" ~ "Bangladesh",
+      country == "Sri Lanka" ~ "Sri Lanka",
+      country == "Uzbekistan" ~ "Uzbekistan",
+      country == "United Arab Emirates" ~ "United Arab Emirates",
+      country == "Kuwait" ~ "Kuwait",
+      TRUE ~ "All Other Countries"
+    ),
+    size = case_when(
+      country %in% c("Singapore", "Bangladesh", "Sri Lanka", "Uzbekistan", 
+                     "United Arab Emirates", "Kuwait") ~ 3,
+      TRUE ~ 0.5
+    ) ,
+    alpha = case_when(
+      country %in% c("Singapore", "Bangladesh", "Sri Lanka", "Uzbekistan", 
+                     "United Arab Emirates", "Kuwait") ~ 0.95,
+      TRUE ~ 0.94
+    ))) + 
+  geom_jitter() +
+  # See Source 2
   labs(
-    title = "Relationship Between Oil Consumption per Person and SDI",
+    title = "**How Oil Consumption Does Not Allow for Sustainable Development** 
+    <br />
+    <span style='font-size:11pt'>Countries such as<span style='color:#E69F00;'>
+    Bangladesh</span>, <span style='color:#CC79A7;'>Sri Lanka</span>, and 
+    <span style='color:#D55E00;'>Uzbekistan</span> shine while other 
+    countries like <br /><span style='color:#009E73;'>Singapore</span>, the 
+    <span style='color:#0072B2;'>United Arab Emirates</span>, and 
+    <span style='color:#56B4E9;'>Kuwait</span> guzzle oil without 
+    benefiting their citizens. </span>",
     x = "Oil Consumption per Person (tonnes/person)",
-    y = "Sustainable Development Index"
-  )
+    y = "Sustainable Development Index",
+    caption = "Data from Gapminder",
+  ) +
+  scale_y_continuous(limits = c(0, 110)) +
+  scale_x_sqrt() +
+  scale_color_manual(values = cbPalette, name = "") +
+  scale_size_continuous(range = c(0.5, 1.3), name = "") +
+  scale_alpha_continuous(range = c(0.45, 0.7), name = "Country") +
+  # See Source 3
+  theme(
+    text = element_text(family = "Helvetica"),
+    plot.title = element_markdown(lineheight = 1.1),
+    plot.caption = element_text(hjust = 1, 
+                                color = "blue", 
+                                face = "italic"),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    legend.position = "none")
 ```
  
 # Visualization Over Time
@@ -94,17 +137,19 @@ dataset %>%
 dataset %>%
   group_by(year) %>%
   mutate(ratio = (`Sustainable Development Index`/`Oil Consumption per Person (tonnes/person)`)) %>%
-  summarize(mean = mean(ratio)) %>%
+  summarize(mean = mean(ratio)) %>% 
+  ungroup() %>% 
   ggplot(mapping = aes(
-    x = `year`, 
-    y = mean)) +
-  geom_point() + 
+    x = year, 
+    y = mean,
+    group = 1)) +
+  geom_line() + 
   labs(
     title = "Mean Ratio of SDI to Oil Consumption Per Person Over Time",
     x = "Year",
     y = "Mean Ratio"
-  ) +
-  theme(axis.text.x = element_text(size = 7))
+  ) 
+  # theme(axis.text.x = element_text(size = 7))
 ```
 
 # Linear Regression
@@ -117,9 +162,9 @@ dataset_lm <- dataset %>%
 ```{r}
 broom::glance(dataset_lm) 
 ```
-SDI = 67.32 -7.714(Oil Consumption)
-The intercept, b0 = 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, b1 = -7.714,
-summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
+SDI = 67.32 -7.714 (Oil Consumption)
+
+The intercept, b0 = 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, b1 = -7.714, summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
 
 # Residuals
 ```{r}
