@@ -26,6 +26,7 @@ library(broom)
 library(ggtext)
 library(gganimate)
 library(kableExtra)
+library(DT)
 ```
 
 # Load Data
@@ -221,11 +222,45 @@ lm_tibble <- broom::augment(dataset_lm) %>%
   mutate('Proportion of Variance Accounted for in Model' = `Fitted Value Variance` / (`Response Variance` + `Fitted Value Variance` + `Residual Variance`))
 ```
 
+# Table Using kable()
+
 ```{r}
 lm_tibble %>%
   kbl() %>%
   kable_styling()
 ```
 
+# Table Using kableExtra
+
+```{r}
+lm_tibble %>%
+  kbl(caption = "Table 1: Investigating Whether our Regression does a Good Job Accounting for Variabilty in Response Values", centering = TRUE) %>%
+  kable_classic(full_width = F, 
+                position = "center", 
+                html_font = "Georgia", 
+                font_size = 15) %>%
+  row_spec(0, bold = T)
+ # kable_styling(bootstrap_options = c("condensed"))
+
+# https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+```
+
 # Discussion
 The variance in the response variable, 374.7564, tells us how much Countries differ in Sustainable Development Index. The variance in the fitted values, 150.5912, from our regression model tells us how much the fitted values from our linear regression model vary. The variance of the residuals, 224.1652, tells us how much “the left-overs” from the model vary. The proportion of the variability in the response values that was accounted for by our regression model is 0.2009188; thus, our linear regression model explains about 20% of the variation in Sustainable Development Index. This suggests that our model does not tell us everything we need to know about Sustainable Development Index.
+
+# Datatable Using DT
+
+```{r}
+datatable(dataset,
+          caption = htmltools::tags$caption(
+    style = 'caption-side: bottom; text-align: center;',
+    'Table 2: ', htmltools::em("Exploring Countries' SDI and Oil Consumption Over Time")
+  ), 
+          rownames = FALSE,
+          colnames = c("Country" = "country", "Year" = "year"),
+          filter = "top",
+          clas = "hover cell-border stripe")
+
+# https://www.r-bloggers.com/2021/05/datatable-editor-dt-package-in-r/
+# https://rstudio.github.io/DT/
+```
