@@ -26,9 +26,11 @@ library(broom)
 library(ggtext)
 library(gganimate)
 library(kableExtra)
+library(knitr)
 ```
 
 # Load Data
+
 ```{r load}
 oil <- read_csv(here::here("oil_consumption_per_cap.csv"))
 sdi <- read_csv(here::here("sdi.csv"))
@@ -204,14 +206,9 @@ dataset_lm <- dataset %>%
   lm(`Sustainable Development Index` ~ `Oil Consumption per Person (tonnes/person)`, data = .)
 ```
 
-```{r}
-# TODO: Format this equation in LaTex
-broom::glance(dataset_lm) 
-```
+$\widehat{SDI} = 67.32 - 7.714 \times (Oil Consumption)$
 
-SDI = 67.32 -7.714 (Oil Consumption)
-
-The intercept, b0 = 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, b1 = -7.714, summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
+The intercept, 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, -7.714, summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
 
 ```{r}
 lm_tibble <- broom::augment(dataset_lm) %>% 
