@@ -26,9 +26,12 @@ library(broom)
 library(ggtext)
 library(gganimate)
 library(kableExtra)
+library(knitr)
+library(DT)
 ```
 
 # Load Data
+
 ```{r load}
 oil <- read_csv(here::here("oil_consumption_per_cap.csv"))
 sdi <- read_csv(here::here("sdi.csv"))
@@ -203,14 +206,9 @@ dataset_lm <- dataset %>%
   lm(`Sustainable Development Index` ~ `Oil Consumption per Person (tonnes/person)`, data = .)
 ```
 
-```{r}
-# TODO: Format this equation in LaTex
-broom::glance(dataset_lm) 
-```
+$\widehat{SDI} = 67.32 - 7.714 \times (Oil Consumption)$
 
-SDI = 67.32 -7.714 (Oil Consumption)
-
-The intercept, b0 = 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, b1 = -7.714, summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
+The intercept, 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, -7.714, summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
 
 ```{r}
 lm_tibble <- broom::augment(dataset_lm) %>% 
@@ -220,11 +218,107 @@ lm_tibble <- broom::augment(dataset_lm) %>%
   mutate('Proportion of Variance Accounted for in Model' = `Fitted Value Variance` / (`Response Variance` + `Fitted Value Variance` + `Residual Variance`))
 ```
 
+# Table Using kable()
+
 ```{r}
 lm_tibble %>%
   kbl() %>%
   kable_styling()
 ```
 
+# Table Using kableExtra
+
+```{r}
+lm_tibble %>%
+  kbl(caption = "Table 1: Investigating Whether our Regression does a Good Job Accounting for Variabilty in Response Values", centering = TRUE) %>%
+  kable_classic(full_width = F, 
+                position = "center", 
+                html_font = "Georgia", 
+                font_size = 15) %>%
+  row_spec(0, bold = T)
+ # kable_styling(bootstrap_options = c("condensed"))
+
+# https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+```
+
 # Discussion
 The variance in the response variable, 374.7564, tells us how much Countries differ in Sustainable Development Index. The variance in the fitted values, 150.5912, from our regression model tells us how much the fitted values from our linear regression model vary. The variance of the residuals, 224.1652, tells us how much “the left-overs” from the model vary. The proportion of the variability in the response values that was accounted for by our regression model is 0.2009188; thus, our linear regression model explains about 20% of the variation in Sustainable Development Index. This suggests that our model does not tell us everything we need to know about Sustainable Development Index.
+
+
+```{r}
+predict_sdi <- predict(dataset_lm)
+```
+
+
+```{r}
+oil_sigma <- sigma(dataset_lm)
+
+noise <- function(predicted_vals, mean = 0, sd){
+  predicted_vals + rnorm(length(predicted_vals),
+            mean,
+            sd)
+}
+
+expected_data <- tibble(predicted_values = noise(predict_sdi, 
+                                          sd = oil_sigma
+                                          )
+                   )
+```
+
+```{r}
+expected_data <- dataset %>% 
+  filter(!is.na(`Oil Consumption per Person (tonnes/person)`), 
+         !is.na(`Sustainable Development Index`)
+         ) %>% 
+  select(`Oil Consumption per Person (tonnes/person)`, `Sustainable Development Index`) %>% 
+  bind_cols(expected_data)
+```
+
+
+```{r}
+pred <- expected_data %>% 
+  ggplot(aes(x = `Oil Consumption per Person (tonnes/person)`,
+             y = predicted_values)) +
+  geom_point() +
+  labs(x = "Oil Consumption (tonnes/person)",
+       y = "Simulated SDI")
+
+obs <- dataset %>% 
+  ggplot(aes(x = `Oil Consumption per Person (tonnes/person)`,
+             y = `Sustainable Development Index`)) + 
+  geom_point() + 
+  labs(x = "Oil Consumption (tonnes/person)",
+       y = "Observed SDI")
+
+
+gridExtra::grid.arrange(pred, obs, nrow = 1)
+```
+
+```{r}
+expected_data %>%
+  lm(`Sustainable Development Index` ~ predicted_values, data = .) %>%
+  glance() %>%
+  select(r.squared) %>%
+  pull()
+```
+
+
+The observed data appears to be more extreme than the simulated data. It also seems to be scattered a lot more than the simulated data. The r squared value of the simulated data is 17% which is less than the 20% for the observed data. Thus, our linear model explains less simulated SDI variance compared to the observed SDI variance. 
+
+# Datatable Using DT
+
+```{r}
+datatable(dataset,
+          caption = htmltools::tags$caption(
+            style = 'caption-side: bottom; text-align: center;',
+            'Table 2: ', htmltools::em("Exploring Countries' SDI and Oil Consumption Over Time")  #This will probably end up being Table 1 so we will need to edit
+            ), 
+          rownames = FALSE,
+          colnames = c("Country" = "country", 
+                       "Year" = "year"),
+          filter = "top",
+          clas = "hover cell-border stripe")
+
+# https://www.r-bloggers.com/2021/05/datatable-editor-dt-package-in-r/
+# https://rstudio.github.io/DT/
+```
