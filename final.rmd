@@ -253,11 +253,12 @@ The variance in the response variable, 374.7564, tells us how much Countries dif
 ```{r}
 datatable(dataset,
           caption = htmltools::tags$caption(
-    style = 'caption-side: bottom; text-align: center;',
-    'Table 2: ', htmltools::em("Exploring Countries' SDI and Oil Consumption Over Time")
-  ), 
+            style = 'caption-side: bottom; text-align: center;',
+            'Table 2: ', htmltools::em("Exploring Countries' SDI and Oil Consumption Over Time")
+            ), 
           rownames = FALSE,
-          colnames = c("Country" = "country", "Year" = "year"),
+          colnames = c("Country" = "country", 
+                       "Year" = "year"),
           filter = "top",
           clas = "hover cell-border stripe")
 
