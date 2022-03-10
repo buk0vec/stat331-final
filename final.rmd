@@ -205,8 +205,27 @@ dataset_lm <- dataset %>%
 ```
 
 ```{r}
+# TODO: Format this equation in LaTex
 broom::glance(dataset_lm) 
 ```
+
 SDI = 67.32 -7.714 (Oil Consumption)
 
 The intercept, b0 = 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, b1 = -7.714, summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
+
+```{r}
+lm_tibble <- broom::augment(dataset_lm) %>% 
+  summarise('Response Variance' = var(`Sustainable Development Index`),
+            'Fitted Value Variance' = var(.fitted),
+            'Residual Variance' = var(.resid)) %>% 
+  mutate('Proportion of Variance Accounted for in Model' = `Fitted Value Variance` / (`Response Variance` + `Fitted Value Variance` + `Residual Variance`))
+```
+
+```{r}
+lm_tibble %>%
+  kbl() %>%
+  kable_styling()
+```
+
+# Discussion
+The variance in the response variable, 374.7564, tells us how much Countries differ in Sustainable Development Index. The variance in the fitted values, 150.5912, from our regression model tells us how much the fitted values from our linear regression model vary. The variance of the residuals, 224.1652, tells us how much “the left-overs” from the model vary. The proportion of the variability in the response values that was accounted for by our regression model is 0.2009188; thus, our linear regression model explains about 20% of the variation in Sustainable Development Index. This suggests that our model does not tell us everything we need to know about Sustainable Development Index.
