@@ -245,6 +245,67 @@ lm_tibble %>%
 # Discussion
 The variance in the response variable, 374.7564, tells us how much Countries differ in Sustainable Development Index. The variance in the fitted values, 150.5912, from our regression model tells us how much the fitted values from our linear regression model vary. The variance of the residuals, 224.1652, tells us how much “the left-overs” from the model vary. The proportion of the variability in the response values that was accounted for by our regression model is 0.2009188; thus, our linear regression model explains about 20% of the variation in Sustainable Development Index. This suggests that our model does not tell us everything we need to know about Sustainable Development Index.
 
+
+```{r}
+predict_sdi <- predict(dataset_lm)
+```
+
+
+```{r}
+oil_sigma <- sigma(dataset_lm)
+
+noise <- function(predicted_vals, mean = 0, sd){
+  predicted_vals + rnorm(length(predicted_vals),
+            mean,
+            sd)
+}
+
+expected_data <- tibble(predicted_values = noise(predict_sdi, 
+                                          sd = oil_sigma
+                                          )
+                   )
+```
+
+```{r}
+expected_data <- dataset %>% 
+  filter(!is.na(`Oil Consumption per Person (tonnes/person)`), 
+         !is.na(`Sustainable Development Index`)
+         ) %>% 
+  select(`Oil Consumption per Person (tonnes/person)`, `Sustainable Development Index`) %>% 
+  bind_cols(expected_data)
+```
+
+
+```{r}
+pred <- expected_data %>% 
+  ggplot(aes(x = `Oil Consumption per Person (tonnes/person)`,
+             y = predicted_values)) +
+  geom_point() +
+  labs(x = "Oil Consumption (tonnes/person)",
+       y = "Simulated SDI")
+
+obs <- dataset %>% 
+  ggplot(aes(x = `Oil Consumption per Person (tonnes/person)`,
+             y = `Sustainable Development Index`)) + 
+  geom_point() + 
+  labs(x = "Oil Consumption (tonnes/person)",
+       y = "Observed SDI")
+
+
+gridExtra::grid.arrange(pred, obs, nrow = 1)
+```
+
+```{r}
+expected_data %>%
+  lm(`Sustainable Development Index` ~ predicted_values, data = .) %>%
+  glance() %>%
+  select(r.squared) %>%
+  pull()
+```
+
+
+The observed data appears to be more extreme than the simulated data. It also seems to be scattered a lot more than the simulated data. The r squared value of the simulated data is 17% which is less than the 20% for the observed data. Thus, our linear model explains less simulated SDI variance compared to the observed SDI variance. 
+
 # Datatable Using DT
 
 ```{r}
