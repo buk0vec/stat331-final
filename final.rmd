@@ -1,7 +1,7 @@
 ---
-title: 'Stat 331 - Final'
+title: 'Evaluating the Global Impact of Oil Consumption on Sustainable Development'
 author: "Lillie Allen, Nick Bukovec, Nikhil Koganti, Madeline Willett"
-date: "3/2/2022"
+date: "3/12/2022"
 output:
   prettydoc::html_pretty:
     theme: hpstr
@@ -10,9 +10,9 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE, 
-  message = TRUE, 
-  warning = TRUE, 
+  echo = FALSE, 
+  message = FALSE, 
+  warning = FALSE, 
   fig.align = "center"
   )
 
@@ -31,14 +31,10 @@ library(DT)
 library(plotly)
 ```
 
-# Load Data
-
 ```{r load}
 oil <- read_csv(here::here("oil_consumption_per_cap.csv"))
 sdi <- read_csv(here::here("sdi.csv"))
 ```
-
-# Clean Data
 
 ```{r clean}
 oil_clean <- oil %>%
@@ -75,10 +71,32 @@ dataset <- sdi_clean %>%
   drop_na()
 ```
 
+# Introduction
+
+In this paper, we investigate whether there is a relationship between a nation's annual oil consumption per person and its Sustainable Development Index (SDI). A nation's SDI is calculated by taking a score based on average life expectancy, income, and education level, and dividing it by a score based on nationwide carbon footprint. We wanted to determine if nations have found ways over time to maintain their own Sustainable Development Index while also consuming oil, or if oil use has curbed in favor of sustainable development. To do this, we analyzed historical data from Gapminder for both annual oil consumption per person and SDI.
+
+# Data Table
+
+```{r}
+datatable(dataset,
+          caption = htmltools::tags$caption(
+            style = 'caption-side: bottom; text-align: center;',
+            'Table 1: ', htmltools::em("Exploring Countries' SDI and Oil Consumption Over Time")
+            ), 
+          rownames = FALSE,
+          colnames = c("Country" = "country", 
+                       "Year" = "year"),
+          filter = "top",
+          clas = "hover cell-border stripe")
+
+# https://www.r-bloggers.com/2021/05/datatable-editor-dt-package-in-r/
+# https://rstudio.github.io/DT/
+```
+
 # Data Visualization
 
 ```{r}
-# See Source 1
+# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#CC79A7", "#0072B2",
                "#D55E00")
 
@@ -114,11 +132,11 @@ main_vis <- dataset %>%
     )
     )) + 
   geom_jitter() +
-  # See Source 2
+  # https://stackoverflow.com/questions/49735290/ggplot2-color-individual-words-in-title-to-match-colors-of-groups
   labs(
     title = " How Oil Consumption Does Not Allow for Sustainable Development 
 <span style='font-size:11pt'>Countries such as<span style='color:#E69F00;'> Bangladesh</span>, <span style='color:#CC79A7;'>Sri Lanka</span>, and <span style='color:#D55E00;'>Uzbekistan</span> shine while other countries like <br /><span style='color:#009E73;'>Singapore</span>, the <span style='color:#0072B2;'>United Arab Emirates</span>, and <span style='color:#56B4E9;'>Kuwait</span> guzzle oil without benefiting their citizens. </span>",
-    x = "Oil Consumption per Person (tonnes/person)",
+    x = "Oil Consumption (tonnes/person)",
     y = "Sustainable Development Index",
     caption = "Data from Gapminder",
   ) +
@@ -127,7 +145,7 @@ main_vis <- dataset %>%
   scale_color_manual(values = cbPalette, name = "") +
   scale_size_continuous(range = c(0.5, 1.3), name = "") +
   scale_alpha_continuous(range = c(0.45, 0.7), name = "Country") +
-  # See Source 3
+  # https://felixfan.github.io/ggplot2-remove-grid-background-margin/
   theme(
     text = element_text(family = "Helvetica"),
     plot.caption = element_text(hjust = 1, 
@@ -145,7 +163,7 @@ ggplotly(main_vis, tooltip = "text") %>%
 # Visualization Over Time
 
 ```{r}
-# See Source 1
+# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#CC79A7", "#0072B2",
                "#D55E00")
 anim_plot <- dataset %>%
@@ -159,7 +177,7 @@ anim_plot <- dataset %>%
     alpha = 0.80,
     # size = 0.65
   ) +
-  # See Source 2
+  # https://stackoverflow.com/questions/49735290/ggplot2-color-individual-words-in-title-to-match-colors-of-groups
   labs(
     title = "**Visualizing Oil Consumption and Sustainable Development ({frame_time})** 
     <br />
@@ -168,7 +186,7 @@ anim_plot <- dataset %>%
     footprints. However, as time has passed more countries have lowered their <br/>oil consumption while
     maintaining their sustainable development index.
     </span>",
-    x = "Oil Consumption per Person (tonnes/person)",
+    x = "Oil Consumption (tonnes/person)",
     y = "Sustainable Development Index",
     caption = "Data from Gapminder",
   ) +
@@ -177,7 +195,7 @@ anim_plot <- dataset %>%
   # scale_color_manual(values = cbPalette, name = "") +
   # scale_colour_brewer() +
   scale_size_continuous(range = c(0.4, 10), name = "") +
-  # See Source 3
+  # https://felixfan.github.io/ggplot2-remove-grid-background-margin/
   theme(
     text = element_text(family = "Helvetica"),
     plot.title = element_markdown(lineheight = 1.1),
@@ -210,7 +228,7 @@ dataset_lm <- dataset %>%
 
 $$\widehat{SDI} = 67.32 - 7.714 \times (Oil Consumption)$$
 
-The intercept, 67.32, is the average Sustainable Development Index y = SDI for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, -7.714, summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
+The above equation was determined by creating a linear model in R and then interpreting its result. The intercept, 67.32, is the average Sustainable Development Index (y = SDI) for those countries where the average Oil Consumption per Person is 0. It has no practical interpretation here, since observing an SDI of 0 is impossible. The slope for Oil Consumption per Person, -7.714, summarizes the relationship between the SDI and Oil Consumption per Person variables. The sign is negative, suggesting a negative relationship between these two variables, meaning countries with higher average Oil Consumption per Person tend to have lower Sustainable Development Indexes. For every increase of 1 unit in Oil Consumption per Person, there is an associated decrease of, on average, 7.714 units of SDI.
 
 ```{r}
 lm_tibble <- broom::augment(dataset_lm) %>% 
@@ -220,25 +238,16 @@ lm_tibble <- broom::augment(dataset_lm) %>%
   mutate('Proportion of Variance Accounted for in Model' = `Fitted Value Variance` / (`Response Variance` + `Fitted Value Variance` + `Residual Variance`))
 ```
 
-# Table Using kable()
+# Analyzing Model Residuals
 
 ```{r}
 lm_tibble %>%
-  kbl() %>%
-  kable_styling()
-```
-
-# Table Using kableExtra
-
-```{r}
-lm_tibble %>%
-  kbl(caption = "Table 1: Investigating Whether our Regression does a Good Job Accounting for Variabilty in Response Values", centering = TRUE) %>%
+  kbl(caption = "Table 2: Investigating Whether our Regression does a Good Job Accounting for Variabilty in Response Values", centering = TRUE) %>%
   kable_classic(full_width = F, 
                 position = "center", 
                 html_font = "Georgia", 
                 font_size = 15) %>%
   row_spec(0, bold = T)
- # kable_styling(bootstrap_options = c("condensed"))
 
 # https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
 ```
@@ -246,6 +255,7 @@ lm_tibble %>%
 # Discussion
 The variance in the response variable, 374.7564, tells us how much Countries differ in Sustainable Development Index. The variance in the fitted values, 150.5912, from our regression model tells us how much the fitted values from our linear regression model vary. The variance of the residuals, 224.1652, tells us how much “the left-overs” from the model vary. The proportion of the variability in the response values that was accounted for by our regression model is 0.2009188; thus, our linear regression model explains about 20% of the variation in Sustainable Development Index. This suggests that our model does not tell us everything we need to know about Sustainable Development Index.
 
+# Visualizing Simulations From Our Model
 
 ```{r}
 predict_sdi <- predict(dataset_lm)
@@ -280,23 +290,51 @@ expected_data <- dataset %>%
 ```{r}
 pred <- expected_data %>% 
   ggplot(aes(x = `Oil Consumption per Person (tonnes/person)`,
-             y = predicted_values)) +
-  geom_point() +
+             y = predicted_values,
+             size = `Oil Consumption per Person (tonnes/person)`)) +
+  geom_jitter(
+    alpha = 0.80,
+    color = "#999999"
+  ) +
   labs(x = "Oil Consumption (tonnes/person)",
-       y = "Simulated SDI")
+       y = "Simulated SDI",
+       ) +
+  scale_y_continuous(limits = c(0, 110)) +
+  scale_x_sqrt() +
+  scale_size_continuous(range = c(0.4, 2), name = "") +
+  theme(
+    text = element_text(family = "Helvetica"),
+    plot.title.position = "plot",
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    legend.position = "none")
+
 
 obs <- dataset %>% 
   ggplot(aes(x = `Oil Consumption per Person (tonnes/person)`,
-             y = `Sustainable Development Index`)) + 
-  geom_point() + 
+             y = `Sustainable Development Index`,
+             size = `Oil Consumption per Person (tonnes/person)`)) + 
+  geom_jitter(
+    alpha = 0.80,
+    color = "#999999"
+  ) + 
   labs(x = "Oil Consumption (tonnes/person)",
-       y = "Observed SDI")
+       y = "Observed SDI") +
+  scale_y_continuous(limits = c(0, 110)) +
+  scale_x_sqrt() +
+  scale_size_continuous(range = c(0.4, 2), name = "") +
+  theme(
+    text = element_text(family = "Helvetica"),
+    plot.title.position = "plot",
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    legend.position = "none")
+  
 
-
-gridExtra::grid.arrange(pred, obs, nrow = 1)
+gridExtra::grid.arrange(pred, obs, nrow = 1, top = "Comparing Simulated and Observed SDI and Oil Consumption Data") 
 ```
 
-```{r}
+```{r, include = FALSE}
 expected_data %>%
   lm(`Sustainable Development Index` ~ predicted_values, data = .) %>%
   glance() %>%
@@ -305,25 +343,7 @@ expected_data %>%
 ```
 
 
-The observed data appears to be more extreme than the simulated data. It also seems to be scattered a lot more than the simulated data. The r squared value of the simulated data is 17% which is less than the 20% for the observed data. Thus, our linear model explains less simulated SDI variance compared to the observed SDI variance. 
-
-# Datatable Using DT
-
-```{r}
-datatable(dataset,
-          caption = htmltools::tags$caption(
-            style = 'caption-side: bottom; text-align: center;',
-            'Table 2: ', htmltools::em("Exploring Countries' SDI and Oil Consumption Over Time")  #This will probably end up being Table 1 so we will need to edit
-            ), 
-          rownames = FALSE,
-          colnames = c("Country" = "country", 
-                       "Year" = "year"),
-          filter = "top",
-          clas = "hover cell-border stripe")
-
-# https://www.r-bloggers.com/2021/05/datatable-editor-dt-package-in-r/
-# https://rstudio.github.io/DT/
-```
+The above plots compare the simulated data from our linear model with the actual data from Gapminder. Our model seems to generate values with a higher SDI when oil consumption per person is low than compared to the original data. The range of oil consumption is also smaller in the generated dataset. It also seems to be scattered a lot more than the observed data. The R-squared value of the simulated data is around 17% which is less than the 20% for the observed data. Thus, our linear model explains less simulated SDI variance compared to the observed SDI variance. 
 
 # Generating Multiple Predictive Checks
 
@@ -354,7 +374,6 @@ sims <- dataset %>%
 ```
 
 
-
 ```{r}
 sim_r_sq <- sims %>% 
   map(~lm(`Sustainable Development Index` ~ .x, data = sims)) %>% 
@@ -362,9 +381,6 @@ sim_r_sq <- sims %>%
   map_dbl(~.$r.squared)
 ```
 
-```{r}
-head(sim_r_sq)
-```
 
 ```{r}
 sim_r_sq <- sim_r_sq[names(sim_r_sq) != "Sustainable Development Index"]
@@ -373,6 +389,15 @@ sim_r_sq <- sim_r_sq[names(sim_r_sq) != "Sustainable Development Index"]
 ```{r}
 tibble(sims = sim_r_sq) %>% 
   ggplot(aes(x = sims)) + 
-  geom_histogram(binwidth = 0.01)
+  geom_histogram(binwidth = 0.01) +
+  labs(
+    title = "Distribution of Simulated R-Squared Values",
+    x = "Simulated R-Squared Values"
+  )
 ```
 
+The above plot shows the distribution of R-squared values when creating linear models with our generated data. We generated 1000 models and plotted the R-squared values for each. In our initial runthrough, we found that the simulated datasets had R-squared values between 0.12 and 0.185. This indicates that the data simulated under our statistical model are somewhat similar to what was observed. On average, our simulated data account for at most 18.5% of the variability in the observed Sustainable Development Indexes. Note that the above plot was generated at build time and reflects a different, randomly generated dataset.
+
+# Conclusion
+
+While there seems to be a negative relationship between SDI and Oil Consumption, we do not have enough data to determine that it is a purely linear relationship. Our model doesn't account for enough of the variation within the observed dataset. For future examination, we would either try different regression techniques and/or seek out more data to train our model with.
