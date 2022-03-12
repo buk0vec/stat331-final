@@ -323,3 +323,55 @@ datatable(dataset,
 # https://www.r-bloggers.com/2021/05/datatable-editor-dt-package-in-r/
 # https://rstudio.github.io/DT/
 ```
+
+# Generating Multiple Predictive Checks
+
+
+```{r}
+# n>=1000
+nsims <- 1000
+
+sims <- map_dfc(1:nsims,
+                ~ tibble(sim = noise(predict_sdi, sd = oil_sigma)
+                        )
+                ) 
+```
+
+```{r}
+colnames(sims) <- colnames(sims) %>% 
+  str_replace(pattern = "\\.\\.\\.",
+                  replace = "_")
+```
+
+```{r}
+sims <- dataset %>% 
+  filter(!is.na(`Oil Consumption per Person (tonnes/person)`),
+         !is.na(`Sustainable Development Index`)) %>% 
+  select(`Sustainable Development Index`) %>% 
+  bind_cols(sims)
+
+```
+
+
+
+```{r}
+sim_r_sq <- sims %>% 
+  map(~lm(`Sustainable Development Index` ~ .x, data = sims)) %>% 
+  map(glance) %>% 
+  map_dbl(~.$r.squared)
+```
+
+```{r}
+head(sim_r_sq)
+```
+
+```{r}
+sim_r_sq <- sim_r_sq[names(sim_r_sq) != "Sustainable Development Index"]
+```
+
+```{r}
+tibble(sims = sim_r_sq) %>% 
+  ggplot(aes(x = sims)) + 
+  geom_histogram(binwidth = 0.01)
+```
+
