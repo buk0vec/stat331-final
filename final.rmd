@@ -28,6 +28,7 @@ library(gganimate)
 library(kableExtra)
 library(knitr)
 library(DT)
+library(plotly)
 ```
 
 # Load Data
@@ -81,9 +82,11 @@ dataset <- sdi_clean %>%
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#CC79A7", "#0072B2",
                "#D55E00")
 
-dataset %>%
-  mutate(
-    country = as.factor(case_when(
+main_vis <- dataset %>%
+  ggplot(mapping = aes(
+    x = `Oil Consumption per Person (tonnes/person)`, 
+    y = `Sustainable Development Index`,
+    color = case_when(
       country == "Singapore" ~ "Singapore",
       country == "Bangladesh" ~ "Bangladesh",
       country == "Sri Lanka" ~ "Sri Lanka",
@@ -91,12 +94,7 @@ dataset %>%
       country == "United Arab Emirates" ~ "United Arab Emirates",
       country == "Kuwait" ~ "Kuwait",
       TRUE ~ "All Other Countries"
-    ))
-  ) %>% 
-  ggplot(mapping = aes(
-    x = `Oil Consumption per Person (tonnes/person)`, 
-    y = `Sustainable Development Index`,
-    color = country,
+    ),
     size = case_when(
       country %in% c("Singapore", "Bangladesh", "Sri Lanka", "Uzbekistan", 
                      "United Arab Emirates", "Kuwait") ~ 3,
@@ -106,19 +104,20 @@ dataset %>%
       country %in% c("Singapore", "Bangladesh", "Sri Lanka", "Uzbekistan", 
                      "United Arab Emirates", "Kuwait") ~ 0.95,
       TRUE ~ 0.94
-    ))) + 
+    ),
+    text = glue::glue(
+      "Year: {year}
+      Country: {country}
+      Oil Consumption per Person: {`Oil Consumption per Person (tonnes/person)`} tonnes/person
+      Sustainable Development Index: {`Sustainable Development Index`}
+      "
+    )
+    )) + 
   geom_jitter() +
   # See Source 2
   labs(
-    title = "**How Oil Consumption Does Not Allow for Sustainable Development** 
-    <br />
-    <span style='font-size:11pt'>Countries such as<span style='color:#E69F00;'>
-    Bangladesh</span>, <span style='color:#CC79A7;'>Sri Lanka</span>, and 
-    <span style='color:#D55E00;'>Uzbekistan</span> shine while other 
-    countries like <br /><span style='color:#009E73;'>Singapore</span>, the 
-    <span style='color:#0072B2;'>United Arab Emirates</span>, and 
-    <span style='color:#56B4E9;'>Kuwait</span> guzzle oil without 
-    benefiting their citizens. </span>",
+    title = " How Oil Consumption Does Not Allow for Sustainable Development 
+<span style='font-size:11pt'>Countries such as<span style='color:#E69F00;'> Bangladesh</span>, <span style='color:#CC79A7;'>Sri Lanka</span>, and <span style='color:#D55E00;'>Uzbekistan</span> shine while other countries like <br /><span style='color:#009E73;'>Singapore</span>, the <span style='color:#0072B2;'>United Arab Emirates</span>, and <span style='color:#56B4E9;'>Kuwait</span> guzzle oil without benefiting their citizens. </span>",
     x = "Oil Consumption per Person (tonnes/person)",
     y = "Sustainable Development Index",
     caption = "Data from Gapminder",
@@ -131,14 +130,16 @@ dataset %>%
   # See Source 3
   theme(
     text = element_text(family = "Helvetica"),
-    plot.title = element_markdown(lineheight = 1.1),
     plot.caption = element_text(hjust = 1, 
                                 color = "blue", 
                                 face = "italic"),
+    plot.title.position = "plot",
     panel.background = element_blank(),
     axis.line = element_line(colour = "black"),
     legend.position = "none")
 
+ggplotly(main_vis, tooltip = "text") %>% 
+  layout(title = list(pad = list(l = 10 )))
 ```
  
 # Visualization Over Time
